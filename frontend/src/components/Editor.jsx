@@ -1,51 +1,32 @@
+import { useUser } from './AuthProvider'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect } from 'react'
-import { useVersionHistory } from '../hooks/useVersionHistory'
+import Collaboration from '@tiptap/extension-collaboration'
+import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import * as Y from 'yjs'
+import { WebsocketProvider } from 'y-websocket'
 
-const Editor = ({ content }) => {
+const ydoc = new Y.Doc()
+const provider = new WebsocketProvider('wss://demos.yjs.dev', 'policy-editor-room-1', ydoc)
+
+const Editor = () => {
   const editor = useEditor({
-    extensions: [StarterKit],
-    content: content || '<p>Start editing your policy draft...</p>',
+    extensions: [
+      StarterKit.configure({ history: false }),
+      Collaboration.configure({ document: ydoc }),
+      CollaborationCursor.configure({
+        provider,
+        user: {
+          name: 'Emily',
+          color: '#38bdf8',
+        },
+      }),
+    ],
   })
 
-  const docId = 'default-policy-doc' // could be dynamic in the future
-  const { versions, saveVersion, restoreVersion } = useVersionHistory(docId, editor)
-
-  useEffect(() => {
-    if (editor && content) {
-      editor.commands.setContent(content)
-    }
-  }, [content, editor])
-
   return (
-    <div className="bg-white p-4 rounded shadow space-y-4">
+    <div className="bg-white p-4 rounded-xl shadow">
       <EditorContent editor={editor} />
-
-      <button
-        onClick={saveVersion}
-        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-      >
-        💾 Save Version
-      </button>
-
-      <div className="mt-4">
-        <h2 className="font-semibold text-sm mb-2">📜 Version History</h2>
-        {versions.length === 0 && (
-          <p className="text-xs text-gray-500">No versions saved yet.</p>
-        )}
-        {versions.map((v, index) => (
-          <div key={index} className="text-sm flex justify-between items-center mb-1">
-            <span>{new Date(v.timestamp).toLocaleString()}</span>
-            <button
-              onClick={() => restoreVersion(v.content)}
-              className="text-blue-600 text-xs hover:underline"
-            >
-              Restore
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
