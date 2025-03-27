@@ -1,37 +1,31 @@
-import { useUser } from './AuthProvider'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEffect, useRef } from 'react'
+import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Collaboration from '@tiptap/extension-collaboration'
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
+import { saveDoc } from '../lib/saveDoc'
 
-const ydoc = new Y.Doc()
-const provider = new WebsocketProvider('wss://demos.yjs.dev', 'policy-editor-room-1', ydoc)
-
-const Editor = () => {
-  const user = useUser() // 👈 keeps useUser active
-  console.log('Logged in user:', user) // optional, silences ESLint warning
-
+const Editor = ({ content, docId }) => {
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ history: false }),
-      Collaboration.configure({ document: ydoc }),
-      CollaborationCursor.configure({
-        provider,
-        user: {
-          name: user?.name || 'Anonymous',
-          color: user?.color || '#38bdf8',
-        },
-      }),
-    ],
+    extensions: [StarterKit],
+    content,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      debouncedSave(html)
+    }
   })
 
-  return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <EditorContent editor={editor} />
-    </div>
-  )
+  const timeoutRef = useRef(null)
+  const debouncedSave = (html) => {
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      saveDoc(docId, html)
+    }, 1000)
+  }
+
+  useEffect(() => {
+    if (editor && content) editor.commands.setContent(content)
+  }, [content, editor])
+
+  return <EditorContent editor={editor} />
 }
 
 export default Editor

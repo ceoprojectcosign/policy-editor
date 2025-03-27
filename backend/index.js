@@ -1,88 +1,110 @@
-const express = require('express')
-const cors = require('cors')
-const pdfParse = require('pdf-parse')
-const fetch = require('node-fetch')
+import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import Stripe from 'stripe'
+import fetch from 'node-fetch'
+
+dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 3002
-
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req, res) => {
-  res.send('Backend is live ✅')
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16'
 })
 
-app.post('/api/extract-draft', async (req, res) => {
-  const { pdfUrl } = req.body
-  if (!pdfUrl) return res.status(400).json({ error: 'Missing PDF URL' })
-
+// Stripe Checkout Session
+app.post('/api/create-checkout-session', async (req, res) => {
   try {
-    const response = await fetch(pdfUrl)
-    const buffer = await response.buffer()
-    const data = await pdfParse(buffer)
-
-    // 🧼 Clean up formatting
-    let draft = data.text
-      .replace(/\r\n|\r/g, '\n')                    // normalize line endings
-      .replace(/\n{2,}/g, '\n\n')                   // collapse multiple blank lines
-      .replace(/[^\S\r\n]{2,}/g, ' ')               // collapse weird extra spaces
-      .split('\n')                                  // split into lines
-      .map(line => line.trim())                     // trim each line
-      .filter(line => line.length > 0)              // remove empty lines
-      .slice(0, 40)                                  // limit preview
-      .join('\n\n')                                 // rejoin with proper spacing
-
-    res.json({ draft })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Failed to parse PDF' })
-  }
-})
-
-app.post('/api/ai/summarize', async (req, res) => {
-  const { prompt } = req.body
-  if (!prompt) return res.status(400).json({ error: 'Missing prompt' })
-
-  try {
-    const response = await fetch('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'mistral',
-        prompt: `Summarize the following policy:\n\n${prompt}`,
-        stream: false
-      }),
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1
+        }
+      ],
+      success_url: `${process.env.FRONTEND_URL}/success`,
+      cancel_url: `${process.env.FRONTEND_URL}/cancel`
     })
-    const result = await response.json()
-    res.json({ summary: result.response })
+    res.json({ url: session.url })
   } catch (err) {
-    console.error('AI error:', err)
-    res.status(500).json({ error: 'AI request failed' })
+    console.error('❌ Stripe session error:', err.message)
+    res.status(500).json({ error: err.message })
   }
 })
 
-const versionStore = {}
-
-app.post('/api/versions/:docId', (req, res) => {
+// Version History (Mocked)
+app.get('/api/versions/:docId', async (req, res) => {
   const { docId } = req.params
-  const { content, timestamp } = req.body
+  const mockData = [
+    { version: 'v1', timestamp: new Date().toISOString() },
+    { version: 'v2', timestamp: new Date().toISOString() }
+  ]
+  res.json(mockData)
+})
 
-  if (!docId || !content || !timestamp) {
-    return res.status(400).json({ error: 'Missing data' })
+// Web Scraper (PDF finder)
+app.post('/api/scrape-pdfs', async (req, res) => {
+  const { url } = req.body
+  try {
+    const html = await fetch(url).then(r => r.text())
+    const matches = [...html.matchAll(/href=["']([^"']+\.pdf)["']/gi)]
+    const links = matches.map(m => m[1])
+    res.json({ links })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to scrape PDF links' })
+  }
+})
+
+// AI Summary (mock or proxy to OpenAI/local model)
+app.post('/api/summarize', async (req, res) => {
+  const { text } = req.body
+  // 👇 This is a placeholder — swap in real AI logic or API
+  res.json({ summary: `Summary: ${text.slice(0, 100)}...` })
+})
+
+// Stripe Webhook to upgrade users
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature']
+
+  let event
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    )
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
-  if (!versionStore[docId]) versionStore[docId] = []
-  versionStore[docId].push({ content, timestamp })
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object
+    const customerEmail = session.customer_email
 
-  res.json({ versions: versionStore[docId] })
+    try {
+      const supabaseRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_profiles?email=eq.${customerEmail}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+        },
+        body: JSON.stringify({ role: 'premium' })
+      })
+      if (!supabaseRes.ok) throw new Error('Failed to update user role')
+      res.json({ received: true })
+    } catch (err) {
+      console.error('❌ Supabase role update failed:', err.message)
+      res.status(500).send('Supabase update error')
+    }
+  } else {
+    res.json({ received: true })
+  }
 })
 
-app.get('/api/versions/:docId', (req, res) => {
-  const { docId } = req.params
-  res.json({ versions: versionStore[docId] || [] })
-})
-
-app.listen(PORT, () => {
-  console.log(`🚀 Backend running at http://localhost:${PORT}`)
-})
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => console.log(`🔥 Backend running on http://localhost:${PORT}`))

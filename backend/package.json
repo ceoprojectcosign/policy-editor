@@ -1,16 +1,19 @@
 {
-  "name": "policy-editor-backend",
-  "version": "1.0.0",
+  "name": "policy-backend",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@tiptap/react": "^2.11.5",
-    "@tiptap/starter-kit": "^2.11.5",
     "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "node-fetch": "^2.6.7",
-    "pdf-parse": "^1.1.1"
-  }
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "stripe": "^12.18.0"
+  },
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
