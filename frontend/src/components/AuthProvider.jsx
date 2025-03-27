@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-// Simulate a different user per browser tab
+// Simulate a different user per browser tab/session
 const randomNames = ['Emily', 'Alex', 'Jordan', 'Taylor', 'Morgan']
 const randomColors = ['#f87171', '#34d399', '#60a5fa', '#fbbf24', '#a78bfa']
 
@@ -14,11 +14,7 @@ const AuthContext = createContext(user)
 export const useUser = () => useContext(AuthContext)
 
 const AuthProvider = ({ children }) => {
-  return (
-    <AuthContext.Provider value={user}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>
 }
 
 export default AuthProvider

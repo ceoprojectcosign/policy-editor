@@ -10,6 +10,9 @@ const ydoc = new Y.Doc()
 const provider = new WebsocketProvider('wss://demos.yjs.dev', 'policy-editor-room-1', ydoc)
 
 const Editor = () => {
+  const user = useUser() // 👈 keeps useUser active
+  console.log('Logged in user:', user) // optional, silences ESLint warning
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ history: false }),
@@ -17,8 +20,8 @@ const Editor = () => {
       CollaborationCursor.configure({
         provider,
         user: {
-          name: 'Emily',
-          color: '#38bdf8',
+          name: user?.name || 'Anonymous',
+          color: user?.color || '#38bdf8',
         },
       }),
     ],
