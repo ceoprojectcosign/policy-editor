@@ -1,0 +1,15 @@
+[
+    {
+      "district": "exampledistrict1",
+      "url": "https://exampledistrict1.org/policies/code-of-conduct.pdf",
+      "text": "All students must abide by the rules set forth in this document...",
+      "timestamp": "2025-03-28T12:00:00.000Z"
+    },
+    {
+      "district": "exampledistrict2",
+      "url": "https://exampledistrict2.org/policies/gender-policy.pdf",
+      "text": "This policy outlines guidance for inclusive practices and gender identity rights.",
+      "timestamp": "2025-03-28T12:02:00.000Z"
+    }
+  ]
+  
