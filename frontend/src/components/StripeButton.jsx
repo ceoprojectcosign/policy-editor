@@ -1,13 +1,16 @@
-const StripeButton = () => {
+export default function StripeButton() {
   const handleUpgrade = async () => {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/create-checkout-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    const { url } = await res.json()
-    window.location.href = url
-  }
-  return <button onClick={handleUpgrade}>Upgrade to Premium</button>
-}
+    const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+    const { url } = await res.json();
+    window.location.href = url;
+  };
 
-export default StripeButton
+  return (
+    <button
+      onClick={handleUpgrade}
+      className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
+    >
+      Upgrade to Premium
+    </button>
+  );
+}

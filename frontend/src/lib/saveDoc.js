@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import supabase from '../lib/supabaseClient';
 
 export const saveDoc = async (docId, content) => {
   const { data: { user } } = await supabase.auth.getUser()

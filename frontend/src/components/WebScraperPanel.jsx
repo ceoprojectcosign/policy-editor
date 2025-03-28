@@ -1,38 +1,72 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 const WebScraperPanel = () => {
-  const [url, setUrl] = useState('')
-  const [links, setLinks] = useState([])
+  const [url, setUrl] = useState('');
+  const [links, setLinks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const scrape = async () => {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape-pdfs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    })
-    const data = await res.json()
-    setLinks(data.links || [])
-  }
+  const handleScrape = async () => {
+    if (!url) return;
+
+    setLoading(true);
+    setError(null);
+    setLinks([]);
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape-pdfs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await res.json();
+
+      if (data.links && data.links.length > 0) {
+        setLinks(data.links);
+      } else {
+        setError('No PDFs found on that page.');
+      }
+    } catch (err) {
+      setError('Scraping failed. Please try another URL.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="p-3 bg-white rounded shadow space-y-2">
+    <div className="p-4 bg-white rounded shadow space-y-3">
+      <h2 className="font-semibold text-md">Web PDF Scraper</h2>
       <input
-        type="text"
+        type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        placeholder="Enter webpage URL"
-        className="w-full border px-2 py-1 text-sm rounded"
+        placeholder="https://example.com/page"
+        className="w-full border px-3 py-2 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button onClick={scrape} className="bg-blue-500 text-white px-3 py-1 text-sm rounded">
-        Find PDFs
+      <button
+        onClick={handleScrape}
+        disabled={loading || !url}
+        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded disabled:opacity-50"
+      >
+        {loading ? 'Scanning...' : 'Find PDFs'}
       </button>
+
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+
       {links.length > 0 && (
-        <ul className="text-sm list-disc list-inside">
-          {links.map((link, idx) => <li key={idx}><a href={link} target="_blank" className="text-blue-600 underline">{link}</a></li>)}
+        <ul className="text-sm list-disc list-inside space-y-1">
+          {links.map((link, idx) => (
+            <li key={idx}>
+              <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                {link}
+              </a>
+            </li>
+          ))}
         </ul>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default WebScraperPanel
+export default WebScraperPanel;
