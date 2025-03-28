@@ -28,6 +28,8 @@ import SuggestedEditItem from './SuggestedEditItem';
 import EmojiReactionsBar from './EmojiReactionsBar';
 import LeaderboardPanel from './LeaderboardPanel';
 import BadgeDisplay from './BadgeDisplay';
+import ShareLinkButton from './ShareLinkButton';
+import PublicToggle from './PublicToggle';
 
 const ydoc = new Y.Doc();
 const provider = new WebsocketProvider('ws://localhost:1234', 'policy-room', ydoc);
@@ -138,6 +140,8 @@ const Editor = ({ content, docId }) => {
       <div className="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
         <Toolbar editor={editor} />
         <div className="flex items-center gap-4">
+          <PublicToggle docId={docId} />
+          <ShareLinkButton docId={docId} />
           <BadgeDisplay role="editor" />
           <DocStatusBadge status={saveStatus} />
           <button onClick={() => editor.chain().focus().undo().run()} className="hover:underline">↶ Undo</button>
