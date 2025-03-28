@@ -13,6 +13,7 @@ import History from '@tiptap/extension-history';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { saveDoc } from '../lib/saveDoc';
+import toast from 'react-hot-toast';
 
 import PageTitleBar from './PageTitleBar';
 import Toolbar from './Toolbar';
@@ -24,6 +25,9 @@ import UserPresenceBar from './UserPresenceBar';
 import EditTrackerPanel from './EditTrackerPanel';
 import SectionApprovalBar from './SectionApprovalBar';
 import SuggestedEditItem from './SuggestedEditItem';
+import EmojiReactionsBar from './EmojiReactionsBar';
+import LeaderboardPanel from './LeaderboardPanel';
+import BadgeDisplay from './BadgeDisplay';
 
 const ydoc = new Y.Doc();
 const provider = new WebsocketProvider('ws://localhost:1234', 'policy-room', ydoc);
@@ -33,7 +37,23 @@ const Editor = ({ content, docId }) => {
   const [showVersions, setShowVersions] = useState(false);
   const [editLog, setEditLog] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [emojiReactions, setEmojiReactions] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([
+    { name: 'Emily', points: 124 },
+    { name: 'Alex', points: 97 },
+    { name: 'Jordan', points: 85 },
+  ]);
   const timeoutRef = useRef(null);
+
+  const incrementPoints = (userName, points = 1) => {
+    setLeaderboard((prev) => {
+      const updated = prev.map((u) =>
+        u.name === userName ? { ...u, points: u.points + points } : u
+      );
+      toast.success(`+${points} points awarded to ${userName}`);
+      return updated;
+    });
+  };
 
   const debouncedSave = (html) => {
     clearTimeout(timeoutRef.current);
@@ -74,6 +94,8 @@ const Editor = ({ content, docId }) => {
         ...prev,
         { user: 'Anonymous', action: 'edited', text: html.slice(0, 30), timestamp: Date.now() },
       ]);
+
+      incrementPoints('Anonymous', 1);
     },
   });
 
@@ -84,19 +106,27 @@ const Editor = ({ content, docId }) => {
   }, [content, editor]);
 
   const handleApproveSection = (sectionId) => {
-    console.log('Approved section:', sectionId);
+    toast.success(`Section ${sectionId} approved`);
   };
 
   const handleRejectSection = (sectionId) => {
-    console.log('Rejected section:', sectionId);
+    toast.error(`Section ${sectionId} rejected`);
   };
 
   const handleAcceptSuggestion = (id) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
+    toast.success('Suggestion accepted');
+    incrementPoints('Anonymous', 2);
   };
 
   const handleRejectSuggestion = (id) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
+    toast('Suggestion rejected', { icon: '❌' });
+  };
+
+  const handleEmojiReaction = (emoji) => {
+    setEmojiReactions((prev) => [...prev, emoji]);
+    toast(`Reacted with ${emoji}`);
   };
 
   return (
@@ -108,6 +138,7 @@ const Editor = ({ content, docId }) => {
       <div className="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
         <Toolbar editor={editor} />
         <div className="flex items-center gap-4">
+          <BadgeDisplay role="editor" />
           <DocStatusBadge status={saveStatus} />
           <button onClick={() => editor.chain().focus().undo().run()} className="hover:underline">↶ Undo</button>
           <button onClick={() => editor.chain().focus().redo().run()} className="hover:underline">↷ Redo</button>
@@ -125,6 +156,8 @@ const Editor = ({ content, docId }) => {
 
       <EditorContent editor={editor} />
 
+      <EmojiReactionsBar onReact={handleEmojiReaction} />
+
       <EditTrackerPanel changes={editLog} />
 
       {suggestions.map((s) => (
@@ -135,6 +168,8 @@ const Editor = ({ content, docId }) => {
           onReject={handleRejectSuggestion}
         />
       ))}
+
+      <LeaderboardPanel users={leaderboard} />
 
       <VersionHistory
         docId={docId}
