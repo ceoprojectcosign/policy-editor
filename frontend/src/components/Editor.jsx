@@ -14,13 +14,16 @@ import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { saveDoc } from '../lib/saveDoc';
 
-// 🔁 Component imports
 import PageTitleBar from './PageTitleBar';
 import Toolbar from './Toolbar';
 import DocStatusBadge from './DocStatusBadge';
 import VersionHistory from './VersionHistory';
 import MarkdownExport from './MarkdownExport';
 import PdfExport from './PdfExport';
+import UserPresenceBar from './UserPresenceBar';
+import EditTrackerPanel from './EditTrackerPanel';
+import SectionApprovalBar from './SectionApprovalBar';
+import SuggestedEditItem from './SuggestedEditItem';
 
 const ydoc = new Y.Doc();
 const provider = new WebsocketProvider('ws://localhost:1234', 'policy-room', ydoc);
@@ -28,6 +31,8 @@ const provider = new WebsocketProvider('ws://localhost:1234', 'policy-room', ydo
 const Editor = ({ content, docId }) => {
   const [saveStatus, setSaveStatus] = useState('Saved');
   const [showVersions, setShowVersions] = useState(false);
+  const [editLog, setEditLog] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const timeoutRef = useRef(null);
 
   const debouncedSave = (html) => {
@@ -52,10 +57,7 @@ const Editor = ({ content, docId }) => {
       Collaboration.configure({ document: ydoc }),
       CollaborationCursor.configure({
         provider,
-        user: {
-          name: 'Anonymous',
-          color: '#38bdf8',
-        },
+        user: { name: 'Anonymous', color: '#38bdf8' },
       }),
     ],
     editorProps: {
@@ -67,6 +69,11 @@ const Editor = ({ content, docId }) => {
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       debouncedSave(html);
+
+      setEditLog((prev) => [
+        ...prev,
+        { user: 'Anonymous', action: 'edited', text: html.slice(0, 30), timestamp: Date.now() },
+      ]);
     },
   });
 
@@ -76,9 +83,27 @@ const Editor = ({ content, docId }) => {
     }
   }, [content, editor]);
 
+  const handleApproveSection = (sectionId) => {
+    console.log('Approved section:', sectionId);
+  };
+
+  const handleRejectSection = (sectionId) => {
+    console.log('Rejected section:', sectionId);
+  };
+
+  const handleAcceptSuggestion = (id) => {
+    setSuggestions((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleRejectSuggestion = (id) => {
+    setSuggestions((prev) => prev.filter((s) => s.id !== id));
+  };
+
   return (
     <div className="rounded-lg shadow bg-white dark:bg-gray-800 border dark:border-gray-700">
       <PageTitleBar title="Untitled Document" onChange={(title) => console.log('Title:', title)} />
+
+      <UserPresenceBar users={[{ name: 'Emily', color: '#f87171' }]} />
 
       <div className="flex justify-between items-center px-4 py-2 border-b dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
         <Toolbar editor={editor} />
@@ -92,7 +117,24 @@ const Editor = ({ content, docId }) => {
         </div>
       </div>
 
+      <SectionApprovalBar
+        sectionId="2.1"
+        onApprove={handleApproveSection}
+        onReject={handleRejectSection}
+      />
+
       <EditorContent editor={editor} />
+
+      <EditTrackerPanel changes={editLog} />
+
+      {suggestions.map((s) => (
+        <SuggestedEditItem
+          key={s.id}
+          suggestion={s}
+          onAccept={handleAcceptSuggestion}
+          onReject={handleRejectSuggestion}
+        />
+      ))}
 
       <VersionHistory
         docId={docId}
