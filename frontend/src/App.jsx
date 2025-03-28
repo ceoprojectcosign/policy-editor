@@ -33,7 +33,7 @@ const App = () => {
       const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
         setSession(session);
       });
-      return () => listener.subscription.unsubscribe();
+      return () => listener?.subscription?.unsubscribe();
     };
     initAuth();
   }, []);
@@ -51,15 +51,18 @@ const App = () => {
         .eq('id', docId)
         .single();
 
-      if (data?.content) setContent(data.content);
-      else await saveDoc(docId, '');
+      if (data?.content) {
+        setContent(data.content);
+      } else {
+        await saveDoc(docId, '');
+      }
     };
 
     if (session) {
       loadUser();
       loadDoc();
     }
-  }, [session]);
+  }, [session, docId]);
 
   const handleImport = async () => {
     setLoading(true);
@@ -70,9 +73,10 @@ const App = () => {
         body: JSON.stringify({ pdfUrl }),
       });
       const data = await res.json();
-      setContent(data.draft || '⚠️ PDF was empty.');
-      await saveDoc(docId, data.draft);
+      setContent(data?.draft || '⚠️ PDF was empty.');
+      await saveDoc(docId, data.draft || '');
     } catch (err) {
+      console.error(err);
       setContent(`❌ Import failed: ${err.message}`);
     } finally {
       setLoading(false);
@@ -81,14 +85,14 @@ const App = () => {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
         <AuthForm />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 space-y-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 space-y-4">
       <UserProfile user={userData} />
       <UpgradeBanner user={userData} />
       <PdfImportBar pdfUrl={pdfUrl} setPdfUrl={setPdfUrl} onImport={handleImport} loading={loading} />
