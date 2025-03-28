@@ -2,8 +2,8 @@
   "name": "frontend",
   "version": "1.0.0",
   "scripts": {
-    "preinstall": "rimraf node_modules package-lock.json",
-    "postinstall": "npm audit fix --force || echo 'Audit fix skipped'",
+    "preinstall": "rimraf node_modules",
+    "postinstall": "if exist package-lock.json (npm audit fix --force) else (echo 'Audit fix skipped')",
     "start": "npm run dev",
     "dev": "vite",
     "build": "vite build",
