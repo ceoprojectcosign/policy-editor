@@ -1,0 +1,12 @@
+[
+    {
+      "district": "exampledistrict1",
+      "url": "https://exampledistrict1.org/policies/code-of-conduct.pdf",
+      "text": "All students must abide by the rules..."
+    },
+    {
+      "district": "exampledistrict2",
+      "url": "https://exampledistrict2.org/docs/gender-policy.pdf",
+      "text": "This policy outlines rights related to gender identity..."
+    }
+  ]

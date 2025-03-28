@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 import Editor from './components/Editor';
 import PdfImportBar from './components/PDFImportBar';
 import SummaryPanel from './components/SummaryPanel';
@@ -14,6 +16,8 @@ import EditorNoteForm from './components/EditorNoteForm';
 import AISummarySaver from './components/AISummarySaver';
 import SavedNotesList from './components/SavedNotesList';
 import SavedSummariesList from './components/SavedSummariesList';
+import PolicyDashboard from './pages/PolicyDashboard'; // ✅ New import
+
 import supabase from './lib/supabaseClient';
 import { saveDoc } from './lib/saveDoc';
 
@@ -92,30 +96,38 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 space-y-4">
-      <UserProfile user={userData} />
-      <UpgradeBanner user={userData} />
-      <PdfImportBar pdfUrl={pdfUrl} setPdfUrl={setPdfUrl} onImport={handleImport} loading={loading} />
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white p-4 space-y-4">
+            <UserProfile user={userData} />
+            <UpgradeBanner user={userData} />
+            <PdfImportBar pdfUrl={pdfUrl} setPdfUrl={setPdfUrl} onImport={handleImport} loading={loading} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 space-y-4">
-          <Editor content={content} docId={docId} />
-          <EditorNoteForm documentId={docId} />
-          <SavedNotesList documentId={docId} />
-          <AISummarySaver />
-          <SavedSummariesList />
-        </div>
-        <div className="space-y-4">
-          <SummaryPanel content={content} summary={summary} setSummary={setSummary} />
-          <VersionHistory docId={docId} />
-          <NotificationPanel docId={docId} />
-          <AnalyticsPanel docId={docId} />
-          <PremiumOnly user={userData}>
-            <WebScraperPanel />
-          </PremiumOnly>
-        </div>
-      </div>
-    </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2 space-y-4">
+                <Editor content={content} docId={docId} />
+                <EditorNoteForm documentId={docId} />
+                <SavedNotesList documentId={docId} />
+                <AISummarySaver />
+                <SavedSummariesList />
+              </div>
+              <div className="space-y-4">
+                <SummaryPanel content={content} summary={summary} setSummary={setSummary} />
+                <VersionHistory docId={docId} />
+                <NotificationPanel docId={docId} />
+                <AnalyticsPanel docId={docId} />
+                <PremiumOnly user={userData}>
+                  <WebScraperPanel />
+                </PremiumOnly>
+              </div>
+            </div>
+          </div>
+        } />
+        
+        <Route path="/policies" element={<PolicyDashboard />} /> {/* ✅ new route */}
+      </Routes>
+    </Router>
   );
 };
 

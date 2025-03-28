@@ -1,0 +1,3 @@
+https://exampledistrict1.k12.ca.us
+https://exampledistrict2.org
+https://district3.edu
