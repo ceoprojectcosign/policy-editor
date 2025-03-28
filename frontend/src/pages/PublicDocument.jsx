@@ -13,9 +13,10 @@ import supabase from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 const PublicDocument = () => {
-  const { id } = useParams(); // 👈 from /doc/:id
+  const { id } = useParams();
   const [docContent, setDocContent] = useState('');
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const editor = useEditor({
     editable: false,
@@ -41,12 +42,20 @@ const PublicDocument = () => {
     const fetchDoc = async () => {
       const { data, error } = await supabase
         .from('documents')
-        .select('content')
+        .select('content, is_public')
         .eq('id', id)
         .single();
 
-      if (error) {
+      if (error || !data) {
         toast.error('Document not found');
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
+
+      if (!data.is_public) {
+        toast.error('This document is not public.');
+        setAccessDenied(true);
         setLoading(false);
         return;
       }
@@ -58,7 +67,13 @@ const PublicDocument = () => {
     fetchDoc();
   }, [id]);
 
-  if (loading) return <div className="p-6 text-center">Loading document...</div>;
+  if (loading) {
+    return <div className="p-6 text-center">Loading document...</div>;
+  }
+
+  if (accessDenied) {
+    return <div className="p-6 text-center text-red-600">⛔️ Access Denied</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-start pt-10 px-4">
