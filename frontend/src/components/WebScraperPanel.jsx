@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import supabase from '../lib/supabaseClient';
 
 const WebScraperPanel = () => {
   const [url, setUrl] = useState('');
@@ -14,6 +15,15 @@ const WebScraperPanel = () => {
     setLinks([]);
 
     try {
+      // Fetch current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError('User not authenticated.');
+        setLoading(false);
+        return;
+      }
+
+      // Scrape PDFs via backend
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape-pdfs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,6 +34,15 @@ const WebScraperPanel = () => {
 
       if (data.links && data.links.length > 0) {
         setLinks(data.links);
+
+        // Insert each link into Supabase
+        for (const pdfUrl of data.links) {
+          await supabase.from('pdf_scrapes').insert({
+            user_id: user.id,
+            source_url: url,
+            pdf_url: pdfUrl
+          });
+        }
       } else {
         setError('No PDFs found on that page.');
       }

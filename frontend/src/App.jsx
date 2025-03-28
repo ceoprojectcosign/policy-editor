@@ -10,6 +10,10 @@ import NotificationPanel from './components/NotificationPanel';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import WebScraperPanel from './components/WebScraperPanel';
 import PremiumOnly from './components/PremiumOnly';
+import EditorNoteForm from './components/EditorNoteForm';
+import AISummarySaver from './components/AISummarySaver';
+import SavedNotesList from './components/SavedNotesList';
+import SavedSummariesList from './components/SavedSummariesList';
 import supabase from './lib/supabaseClient';
 import { saveDoc } from './lib/saveDoc';
 
@@ -22,17 +26,18 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [docId] = useState('policy-draft-001');
 
-  // Load auth session
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+      });
+      return () => listener.subscription.unsubscribe();
     };
     initAuth();
   }, []);
 
-  // Load user info and doc from Supabase
   useEffect(() => {
     const loadUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -89,15 +94,19 @@ const App = () => {
       <PdfImportBar pdfUrl={pdfUrl} setPdfUrl={setPdfUrl} onImport={handleImport} loading={loading} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-4">
           <Editor content={content} docId={docId} />
+          <EditorNoteForm documentId={docId} />
+          <SavedNotesList documentId={docId} />
+          <AISummarySaver />
+          <SavedSummariesList />
         </div>
         <div className="space-y-4">
           <SummaryPanel content={content} summary={summary} setSummary={setSummary} />
           <VersionHistory docId={docId} />
           <NotificationPanel docId={docId} />
           <AnalyticsPanel docId={docId} />
-          <PremiumOnly>
+          <PremiumOnly user={userData}>
             <WebScraperPanel />
           </PremiumOnly>
         </div>
