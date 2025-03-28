@@ -16,6 +16,7 @@
     "@tiptap/react": "^2.0.0-beta.221",
     "@tiptap/starter-kit": "^2.0.0-beta.221",
     "cheerio": "1.0.0",
+    "html2pdf.js": "0.10.3",
     "node-fetch": "^3.3.2",
     "pdf-parse": "^1.1.1",
     "react": "^18.2.0",
@@ -27,8 +28,8 @@
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.2",
     "postcss": "^8.5.3",
+    "rimraf": "^5.0.5",
     "tailwindcss": "^4.0.16",
-    "vite": "^6.2.3",
-    "rimraf": "^5.0.5"
+    "vite": "^6.2.3"
   }
 }
