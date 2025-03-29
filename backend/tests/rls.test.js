@@ -1,5 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: './test.env' });
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config({ path: './test.env' });
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -28,10 +29,3 @@ test('RLS: user can only access their own documents', async () => {
   expect(select.data.length).toBe(1);
   expect(select.data[0].user_id).toBe(user.id);
 });
-
-// File: backend/tests/utils/test-helpers.js
-const randomId = (prefix = 'test') => `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
-
-module.exports = {
-  randomId
-};
