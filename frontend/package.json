@@ -24,6 +24,7 @@
     "@tiptap/react": "^2.11.6",
     "@tiptap/starter-kit": "^2.11.6",
     "cheerio": "1.0.0",
+    "dotenv": "^16.4.7",
     "html2pdf.js": "0.10.3",
     "node-fetch": "^3.3.2",
     "pdf-parse": "^1.1.1",
