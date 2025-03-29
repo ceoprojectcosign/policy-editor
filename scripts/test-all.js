@@ -1,16 +1,19 @@
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 console.log('🧪 Running FULL PROJECT TEST SUITE...');
 
 try {
-  console.log('\n🧪 [FRONTEND] Running Vitest tests...');
+  console.log('\n🧪 [FRONTEND] Running Vitest unit tests...');
   execSync('npx vitest run', { cwd: './frontend', stdio: 'inherit' });
 
-  console.log('\n🧪 [FRONTEND] Running E2E tests with Playwright...');
+  console.log('\n🧪 [FRONTEND] Running Playwright E2E tests...');
   execSync('npx playwright test', { cwd: './frontend', stdio: 'inherit' });
 
-  console.log('\n🧪 [BACKEND] Running Jest API tests...');
-  execSync('npm test', { cwd: './backend', stdio: 'inherit' });
+  console.log('\n🧪 [BACKEND] Running Jest tests...');
+  execSync('node --experimental-vm-modules node_modules/jest/bin/jest.js', {
+    cwd: './backend',
+    stdio: 'inherit'
+  });
 
   console.log('\n✅ All tests passed successfully!');
 } catch (err) {
