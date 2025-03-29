@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Editor from './components/Editor';
+import Editor from './components/editor/Editor';
+import VersionHistory from './components/editor/VersionHistory';
 import PdfImportBar from './components/PDFImportBar';
 import SummaryPanel from './components/SummaryPanel';
-import VersionHistory from './components/VersionHistory';
 import AuthForm from './components/AuthForm';
 import UpgradeBanner from './components/UpgradeBanner';
 import UserProfile from './components/UserProfile';
