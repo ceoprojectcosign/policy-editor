@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-dotenv.config();
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -18,14 +17,12 @@ async function testAccess() {
 
   const docId = `test-doc-${Date.now()}`;
 
-  // INSERT
   const insertRes = await supabase
     .from('documents')
     .insert([{ id: docId, content: 'RLS Test Content', user_id: user.id }]);
 
   console.log('📥 INSERT:', insertRes.error || 'Success');
 
-  // SELECT
   const selectRes = await supabase
     .from('documents')
     .select('*')
@@ -33,7 +30,6 @@ async function testAccess() {
 
   console.log('📄 SELECT:', selectRes.error || selectRes.data);
 
-  // UPDATE
   const updateRes = await supabase
     .from('documents')
     .update({ content: 'Updated content ✅' })
@@ -41,7 +37,6 @@ async function testAccess() {
 
   console.log('✏️ UPDATE:', updateRes.error || 'Success');
 
-  // DELETE
   const deleteRes = await supabase
     .from('documents')
     .delete()
