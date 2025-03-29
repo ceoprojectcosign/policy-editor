@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.49.3",
+    "@supabase/supabase-js": "^2.49.3",
     "@tiptap/extension-bold": "^2.11.6",
     "@tiptap/extension-bullet-list": "^2.11.6",
     "@tiptap/extension-collaboration": "^2.11.6",
@@ -38,6 +38,7 @@
     "@vitejs/plugin-react": "^4.0.3",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.2",
+    "jsdom": "^26.0.0",
     "postcss": "^8.5.3",
     "rimraf": "^5.0.5",
     "tailwindcss": "^4.0.16",

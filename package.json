@@ -4,10 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\"",
-    "scrape": "python backend/pdf_crawler/run_scraper.py"
+    "scrape": "python backend/pdf_crawler/run_scraper.py",
+    "test:frontend": "cd frontend && npx vitest run",
+    "test:e2e": "cd frontend && npx playwright test",
+    "test:backend": "cd backend && npm test",
+    "test": "node scripts/test-all.js"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "vitest": "3.0.9"
   },
   "dependencies": {
     "react-hot-toast": "2.5.2"

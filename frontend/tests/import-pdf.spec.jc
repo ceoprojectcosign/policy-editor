@@ -1,0 +1,15 @@
+import { test, expect } from '@playwright/test';
+
+test('user can login and import a PDF', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+  await page.getByPlaceholder('Email').fill('testuser@example.com');
+  await page.getByPlaceholder('Password').fill('password123');
+  await page.getByRole('button', { name: 'Sign In' }).click();
+
+  await expect(page).toHaveURL('/editor');
+
+  await page.getByPlaceholder('Enter PDF URL').fill('https://example.com/test.pdf');
+  await page.getByRole('button', { name: 'Import' }).click();
+
+  await expect(page.locator('textarea')).toContainText('...expected PDF text...');
+});
