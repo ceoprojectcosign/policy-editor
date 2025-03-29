@@ -24,14 +24,14 @@ export default function EditorPage({ session }) {
   const [content, setContent] = useState('Loading...');
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
-  const [docId] = useState('policy-draft-001');
+  const docId = 'policy-draft-001';
 
   useEffect(() => {
     const loadUserAndDoc = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUserData(user);
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('documents')
         .select('content')
         .eq('id', docId)
@@ -44,10 +44,8 @@ export default function EditorPage({ session }) {
       }
     };
 
-    if (session) {
-      loadUserAndDoc();
-    }
-  }, [session, docId]);
+    if (session) loadUserAndDoc();
+  }, [session]);
 
   const handleImport = async () => {
     setLoading(true);
@@ -58,8 +56,9 @@ export default function EditorPage({ session }) {
         body: JSON.stringify({ pdfUrl }),
       });
       const data = await res.json();
-      setContent(data?.draft || '⚠️ PDF was empty.');
-      await saveDoc(docId, data.draft || '');
+      const draft = data?.draft || '⚠️ PDF was empty.';
+      setContent(draft);
+      await saveDoc(docId, draft);
     } catch (err) {
       console.error(err);
       setContent(`❌ Import failed: ${err.message}`);
@@ -82,6 +81,7 @@ export default function EditorPage({ session }) {
           <AISummarySaver />
           <SavedSummariesList />
         </div>
+
         <div className="space-y-4">
           <SummaryPanel content={content} summary={summary} setSummary={setSummary} />
           <VersionHistory docId={docId} />
