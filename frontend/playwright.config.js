@@ -1,4 +1,3 @@
-// playwright.config.js
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
@@ -9,8 +8,8 @@ export default defineConfig({
   },
   use: {
     baseURL: 'http://localhost:5173',
-    headless: true,              // Set to false to see browser during test
-    slowMo: 0,                   // Set to 300+ for slow motion debugging
+    headless: true,
+    slowMo: 0,
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
   },
