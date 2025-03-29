@@ -1,22 +1,28 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('PDF Import Flow', () => {
-  test('User can log in and import a PDF', async ({ page }) => {
-    await page.goto('http://localhost:5173');
+  test('User can load editor and paste a PDF URL', async ({ page }) => {
+    // Go directly to the editor route
+    await page.goto('http://localhost:5173/editor');
 
-    // Simulate login (replace with real logic if needed)
-    await page.getByPlaceholder('Email').fill('test@example.com');
-    await page.getByPlaceholder('Password').fill('password123');
-    await page.getByRole('button', { name: /sign in/i }).click();
+    // Wait for the import bar to show up
+    const pdfInput = page.getByPlaceholder('Enter PDF URL');
 
-    await expect(page).toHaveURL(/.*editor/);
+    await expect(pdfInput).toBeVisible({ timeout: 10000 });
 
-    // Simulate entering PDF URL and importing
-    await page.getByPlaceholder('Enter PDF URL').fill('https://example.com/test.pdf');
-    await page.getByRole('button', { name: /import/i }).click();
+    // Simulate a PDF import
+    await pdfInput.fill('https://example.com/policy.pdf');
 
-    // Validate the content appears in the editor
+    const importButton = page.getByRole('button', { name: /import/i });
+
+    await expect(importButton).toBeVisible();
+    await importButton.click();
+
+    // Check for content to appear (depends on your editor setup)
     const editor = page.locator('textarea');
-    await expect(editor).toContainText(''); // You can match expected string here
+    await expect(editor).toBeVisible({ timeout: 10000 });
+
+    // Optional: check if content changes or a success message appears
+    await expect(editor).toContainText(/pdf|policy/i);
   });
 });
