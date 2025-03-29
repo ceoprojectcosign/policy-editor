@@ -1,8 +1,8 @@
-// frontend/playwright.config.js
+// File: e2e/playwright.config.js
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './e2e', // ✅ changed
+  testDir: './tests',
   timeout: 30 * 1000,
   expect: {
     timeout: 5000,
